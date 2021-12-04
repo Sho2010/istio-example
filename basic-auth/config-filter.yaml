@@ -1,0 +1,52 @@
+# NOTE: https://github.com/istio-ecosystem/wasm-extensions/tree/master/extensions/basic_auth
+#
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+ name: basic-auth-config
+ namespace: basic-auth
+spec:
+ configPatches:
+ - applyTo: EXTENSION_CONFIG
+   match:
+     context: SIDECAR_INBOUND
+   patch:
+     operation: ADD
+     value:
+       name: istio.basic_auth
+       typed_config:
+         "@type": type.googleapis.com/udpa.type.v1.TypedStruct
+         type_url: type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm
+         value:
+           config:
+             vm_config:
+               vm_id: basic-auth
+               runtime: envoy.wasm.runtime.v8
+               code:
+                 remote:
+                   http_uri:
+                     uri: https://github.com/istio-ecosystem/wasm-extensions/releases/download/1.11.0/basic-auth.wasm
+                   # Optional: specifying sha256 checksum will let istio agent verify the checksum of downloaded artifacts.
+                   # It is **highly** recommended to provide the checksum, since missing checksum will cause the Wasm module to be downloaded repeatedly.
+                   # To compute the sha256 checksum of a Wasm module, download the module and run `sha256sum` command with it.
+                   # sha256: <WASM-MODULE-SHA>
+             # The configuration for the Wasm extension itself
+             configuration:
+               '@type': type.googleapis.com/google.protobuf.StringValue
+                # SecretやConfigMapからここに値を設定する方法がないため現時点ではになってしまうことに注意する。
+                # そのため、Productionで広く利用されるようなものには絶対適用しない。 SAML SSOが対応しているようならSSOを利用することが望ましい。
+                # 一時的に運用したい、sidekiqのダッシュボードなどクリティカルではないものに利用する
+                #
+                # EnvironmentVariableは利用できるため `proxy.istio.io/config`	annotation を使って環境変数を用いてインジェクションすることは可能かも？
+                #
+                # 以下の例では https://$HOST/ip 以下のURLに対してbasic認証をかける
+               value: |
+                 {
+                   "basic_auth_rules": [
+                     {
+                       "prefix": "/ip",
+                       "request_methods":[ "GET", "POST" ],
+                       "credentials":[ "ok:test", "YWRtaW4zOmFkbWluMw==" ]
+                     }
+                   ]
+                 }

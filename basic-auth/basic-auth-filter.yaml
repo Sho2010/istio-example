@@ -1,0 +1,23 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+ name: basic-auth
+ namespace: basic-auth
+spec:
+ configPatches:
+ - applyTo: HTTP_FILTER
+   match:
+     context: SIDECAR_INBOUND
+     listener:
+       filterChain:
+         filter:
+           name: envoy.filters.network.http_connection_manager
+   patch:
+     operation: INSERT_BEFORE
+     value:
+       name: istio.basic_auth
+       config_discovery:
+         config_source:
+           ads: {}
+           initial_fetch_timeout: 0s # wait indefinitely to prevent bad Wasm fetch
+         type_urls: [ "type.googleapis.com/envoy.extensions.filters.http.wasm.v3.Wasm"]
