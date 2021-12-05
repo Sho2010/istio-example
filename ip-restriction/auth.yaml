@@ -1,0 +1,14 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: ingress-policy
+  namespace: ip-restriction
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: httpbin
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        remoteIpBlocks: ["192.0.2.0/24", "198.51.100.0/24", "203.0.113.0/24"]
