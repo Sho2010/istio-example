@@ -33,11 +33,8 @@ spec:
              # The configuration for the Wasm extension itself
              configuration:
                '@type': type.googleapis.com/google.protobuf.StringValue
-                # SecretやConfigMapからここに値を設定する方法がないため現時点ではになってしまうことに注意する。
-                # そのため、Productionで広く利用されるようなものには絶対適用しない。 SAML SSOが対応しているようならSSOを利用することが望ましい。
-                # 一時的に運用したい、sidekiqのダッシュボードなどクリティカルではないものに利用する
-                #
-                # EnvironmentVariableは利用できるため `proxy.istio.io/config`	annotation を使って環境変数を用いてインジェクションすることは可能かも？
+                # 現時点ではSecretやConfigMapからここに値を設定する方法がないため、credentialsが剥き出しになってしまうことに注意する。
+                # 一時的に運用したいなどクリティカルではないものに利用する
                 #
                 # 以下の例では https://$HOST/ip 以下のURLに対してbasic認証をかける
                value: |

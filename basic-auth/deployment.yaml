@@ -7,7 +7,6 @@ metadata:
     app: httpbin
     app.kubernetes.io/name: httpbin
 spec:
-  progressDeadlineSeconds: 600
   selector:
     matchLabels:
       app.kubernetes.io/name: httpbin
