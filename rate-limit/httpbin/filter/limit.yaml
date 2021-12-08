@@ -1,0 +1,56 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+ labels:
+   app.kubernetes.io/name: httpbin
+ name: filter-ratelimit
+ namespace: ratelimit-test
+spec:
+ workloadSelector:
+   app.kubernetes.io/name: httpbin # label used to identify pods running your applications
+ configPatches:
+   - applyTo: HTTP_FILTER
+     match:
+       context: SIDECAR_INBOUND
+       listener:
+         filterChain:
+           filter:
+             name: envoy.filters.network.http_connection_manager
+             subFilter:
+               name: envoy.filters.http.router
+     patch:
+       operation: INSERT_BEFORE
+       value:
+         name: envoy.filters.http.ratelimit
+         typed_config:
+           "@type": type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit
+           domain: "ratelimit-httpbin" # must match domain in ratelimit ConfigMap
+           failure_mode_deny: true     # run plugin in fail-open mode, no limiting happens if ratelimit is unavailable
+           timeout: 10s
+           rate_limit_service:
+             grpc_service:
+               envoy_grpc:
+                 cluster_name: rate_limit_cluster
+             transport_api_version: V3
+   - applyTo: CLUSTER
+     match:
+       cluster:
+         service: ratelimit.ratelimit.svc.cluster.local
+     patch:
+       operation: ADD
+       value:
+         name: rate_limit_cluster
+         type: STRICT_DNS
+         connect_timeout: 0.25s
+         lb_policy: ROUND_ROBIN
+         http2_protocol_options: {}
+
+         load_assignment:
+            cluster_name: rate_limit_cluster
+            endpoints:
+            - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: ratelimit.ratelimit.svc.cluster.local # ratelimit Service name
+                      port_value: 8081 # and port exposed by the Service

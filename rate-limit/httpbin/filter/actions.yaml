@@ -1,0 +1,30 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: filter-ratelimit-actions
+  namespace: ratelimit-test
+  labels:
+    app.kubernetes.io/name: httpbin
+spec:
+  workloadSelector:
+    app.kubernetes.io/name: httpbin
+  configPatches:
+    - applyTo: VIRTUAL_HOST
+      match:
+        context: SIDECAR_INBOUND
+        routeConfiguration:
+          vhost:
+            name: inbound|http|80 # port must be a port your Service is listening on
+      patch:
+        operation: MERGE
+        value:
+          rate_limits:
+            - actions:
+              - request_headers:
+                  descriptor_key: service-level
+                  header_name: X-SERVICE-LEVEL
+            - actions:
+              - header_value_match:
+                  headers:
+                    - name: :path
+                      prefix_match: "/user-agent"

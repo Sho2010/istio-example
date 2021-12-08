@@ -4,14 +4,16 @@ metadata:
   name: ratelimit-config
 data:
   config.yaml: |
-    domain: echo-ratelimit
+    domain: "ratelimit-httpbin" # domain別に設定が可能
     descriptors:
-      - key: PATH
-        value: "/"
+      - key: service-level
+        value: "admin"
+        rate_limit:
+          unit: minute
+          requests_per_unit: 10
+      - key: header_match
         rate_limit:
           unit: minute
           requests_per_unit: 1
-      - key: PATH
-        rate_limit:
-          unit: minute
-          requests_per_unit: 100
+
+

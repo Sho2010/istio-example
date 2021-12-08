@@ -52,11 +52,11 @@ spec:
         - name: REDIS_URL
           value: redis:6379
         - name: USE_STATSD
-          value: "false"
+          value: "true"
         - name: STATSD_HOST
-          value: statsd
+          value: statsd.ratelimit.svc.cluster.local
         - name: STATSD_PORT
-          value: 9125
+          value: "9125"
         - name: RUNTIME_ROOT
           value: /data
         - name: RUNTIME_SUBDIRECTORY
