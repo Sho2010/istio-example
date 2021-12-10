@@ -1,0 +1,34 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: httpbin
+  namespace: jwt-verify
+spec:
+  gateways:
+  - gateway
+  hosts:
+  - '*'
+  http:
+  - match:
+    - port: 443
+    name: "https-jwt-verify"
+    route:
+    - destination:
+        host: httpbin.jwt-verify.svc.cluster.local
+        port:
+          number: 80
+      headers:
+        request:
+          set:
+            x-forwarded-port: "443"
+            x-forwarded-proto: https
+
+---
+
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: httpbin
+  namespace: jwt-verify
+spec:
+  host: httpbin.jwt-verify.svc.cluster.local

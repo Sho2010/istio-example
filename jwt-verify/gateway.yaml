@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: gateway
+  namespace: jwt-verify
+spec:
+  selector:
+    istio: ingressgateway # istio-systemに存在する前提
+  servers:
+  - port:
+      number: 443
+      name: https
+      protocol: HTTP
+    hosts:
+    - jwt-verify.example.com
+
